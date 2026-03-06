@@ -1,0 +1,37 @@
+services:
+  beszel:
+    image: henrygd/beszel
+    container_name: beszel
+    restart: unless-stopped
+    environment:
+      - APP_URL=<your_url>
+    volumes:
+      - ./beszel_data:/beszel_data
+    labels:
+      - traefik.enable=true
+      - traefik.http.services.beszel.loadbalancer.server.port=8090
+      - traefik.http.routers.beszel.rule=Host(`<your_url>`) || Host(`www.<your_url>`)
+      - traefik.http.routers.beszel.entrypoints=websecure
+      - traefik.http.routers.beszel.tls=true
+      - traefik.http.routers.beszel.tls.certresolver=myresolver
+      - traefik.http.routers.beszel.service=beszel
+    networks:
+      - web
+  beszel-agent:
+    image: henrygd/beszel-agent
+    container_name: beszel-agent
+    restart: unless-stopped
+    network_mode: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./beszel_agent_data:/var/lib/beszel-agent
+      # monitor other disks / partitions by mounting a folder in /extra-filesystems
+      # - /mnt/disk/.beszel:/extra-filesystems/sda1:ro
+    environment:
+      LISTEN: 45876
+      KEY: '<your_key>'
+      TOKEN: <your_token>
+      HUB_URL: <your_url>
+networks:
+  web:
+    external: true
