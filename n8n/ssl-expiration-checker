@@ -173,7 +173,7 @@
                 "operation": "lte"
               },
               "leftValue": "={{ $json.result.days_left }}",
-              "rightValue": 70
+              "rightValue": 21
             }
           ],
           "combinator": "and"
