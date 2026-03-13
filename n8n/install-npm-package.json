@@ -1,0 +1,219 @@
+{
+  "name": "Automate NPM package installation and updates for self-hosted environments",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ab1fe8b7-6706-4f59-bc39-1f80726d2890",
+              "name": "libraries",
+              "type": "string",
+              "value": "cheerio"
+            }
+          ]
+        },
+        "options": {
+          "ignoreConversionErrors": false
+        }
+      },
+      "id": "cc07b2ca-27f2-4a0e-92f7-2d0fbc63ab04",
+      "name": "libraries_set",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        608,
+        400
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {},
+      "id": "f5f22c1a-704b-47db-9f5e-88feb4db75b8",
+      "name": "trigger_manual",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        368,
+        400
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6fb15a6a-7cda-4080-a255-10f85d188854",
+              "name": "libraries",
+              "type": "array",
+              "value": "={{ $json.libraries.split(\",\") }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "85f6ad54-a991-407e-b018-fedaa7fb3a4d",
+      "name": "libraries_array",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        800,
+        400
+      ],
+      "typeVersion": 3.4
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "libraries",
+        "options": {
+          "destinationFieldName": "library"
+        }
+      },
+      "id": "19caae56-6cb0-4f90-a4e9-533712a09d14",
+      "name": "libraries_split",
+      "type": "n8n-nodes-base.splitOut",
+      "position": [
+        992,
+        400
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "events": [
+          "init"
+        ]
+      },
+      "id": "a4a07417-00ce-478e-bcf7-3cc9dd0a75fa",
+      "name": "trigger_instance",
+      "type": "n8n-nodes-base.n8nTrigger",
+      "position": [
+        368,
+        592
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "executeOnce": false,
+        "command": "=npm install {{ $json.library }}"
+      },
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1200,
+        400
+      ],
+      "id": "f39e0690-7339-4eb6-8e83-527bb0c7affa",
+      "name": "Execute Command"
+    },
+    {
+      "parameters": {
+        "content": "# 💡 Dynamic NPM Package Installer Workflow\n\n## 1. Trigger\n- Click **Trigger Manual** to run the workflow manually.  \n- Or use **Trigger Instance** to execute automatically on initialization.\n\n## 2. Add Packages\n- In the **libraries_set** node, enter the npm package names you want to install, separated by commas, e.g. `cheerio,axios`.\n\n## 3. Convert to List\n- **libraries_array** converts the string into an array.  \n- **libraries_split** splits the array into individual items for processing.\n\n## 4. Install Packages\n- The **Execute Command** node runs `npm install <package_name>` for each package.\n\n## 5. Important Notes\n- Packages are installed in the **n8n environment**.  \n- Make sure the packages are **safe and trusted**.  \n- To use a package in a **Function Node**, add it to `NODE_FUNCTION_ALLOW_EXTERNAL`.",
+        "height": 704,
+        "width": 592
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -304,
+        192
+      ],
+      "id": "371e74b0-cb5b-4f38-bdff-904b6526c50f",
+      "name": "Sticky Note"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "libraries_set": {
+      "main": [
+        [
+          {
+            "node": "libraries_array",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "trigger_manual": {
+      "main": [
+        [
+          {
+            "node": "libraries_set",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "libraries_array": {
+      "main": [
+        [
+          {
+            "node": "libraries_split",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "libraries_split": {
+      "main": [
+        [
+          {
+            "node": "Execute Command",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "trigger_instance": {
+      "main": [
+        [
+          {
+            "node": "libraries_set",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Command": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "83d47368-0f44-40ef-a199-e8e51bdce7b4",
+  "meta": {
+    "templateId": "3293",
+    "instanceId": "b0bd83bbcf974c41d296ec417bc83981f52e9b01b85daa894438f303ad70cd2f"
+  },
+  "id": "vCFKdmSju0fdFQex",
+  "tags": [
+    {
+      "name": "restard",
+      "id": "Ngt5iv48YBeVWqBW",
+      "updatedAt": "2026-03-13T10:31:04.062Z",
+      "createdAt": "2026-03-13T10:31:04.062Z"
+    },
+    {
+      "name": "npm",
+      "id": "TtmYrKQUIxXh1vr5",
+      "updatedAt": "2026-03-13T10:31:01.730Z",
+      "createdAt": "2026-03-13T10:31:01.730Z"
+    },
+    {
+      "name": "package",
+      "id": "xJZ0aKsqwa2gaQ5b",
+      "updatedAt": "2026-03-13T10:31:06.285Z",
+      "createdAt": "2026-03-13T10:31:06.285Z"
+    }
+  ]
+}
