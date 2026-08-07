@@ -1,0 +1,82 @@
+{
+  "name": "Uptime Webhook",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "uptime",
+        "authentication": "basicAuth",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "8aa2fcc3-85a7-4af9-b39b-4d7aab64df79",
+      "name": "Page (GET)",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -560,
+        -48
+      ],
+      "webhookId": "98b8ae50-3826-4a46-8b31-4897ba70165d",
+      "credentials": {
+        "httpBasicAuth": {
+          "name": "Uptime user"
+        }
+      },
+      "notes": "Endpoint GET /wh/uptime protégé par Basic Auth. Sert de cible de healthcheck pour un moniteur d'uptime (Uptime Kuma, Beszel, etc.) : une réponse 200 confirme que n8n est vivant et joignable."
+    },
+    {
+      "parameters": {
+        "respondWith": "noData",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -352,
+        -48
+      ],
+      "id": "adf9ee9e-b392-4b5f-8477-c14b3cb86819",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Page (GET)": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "saveDataErrorExecution": "none",
+    "saveDataSuccessExecution": "none",
+    "saveManualExecutions": false
+  },
+  "versionId": "a964c964-626b-4034-ae41-f3edbe451f72",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d1e02db5277038a8aaccbf869cd3b32395b2cae1aa1854e95d569619ebe2da66"
+  },
+  "nodeGroups": [],
+  "id": "HI2DWLHVsST7mvbq",
+  "tags": [
+    {
+      "updatedAt": "2026-06-09T16:57:05.092Z",
+      "createdAt": "2026-06-09T16:57:05.092Z",
+      "id": "ViG5eqzn3oSwYEyN",
+      "name": "uptime"
+    }
+  ]
+}
