@@ -1,0 +1,371 @@
+{
+  "name": "Audit published workflows missing an error workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Audit published workflows missing an error workflow\n\n### How it works\n\nThis workflow audits published n8n workflows to find any that do not have an error workflow configured. It can run manually or on a Monday morning schedule, loads configurable exclusions and limits, retrieves published workflows, checks for missing error workflow settings, then posts a Slack digest only when there is something to report.\n\n### Setup steps\n\n- Configure the n8n credential used by the \"Get Published Workflows\" node so it can list workflows from the target n8n instance.\n- Update the \"Configuration\" node with the correct n8nBaseUrl, excludedTags, excludedWorkflowIds, and maxWorkflowsListed values.\n- Configure the Slack credential and target channel in the \"Send Slack Digest\" node.\n- Review or adjust the schedule in \"Every Monday Morning\" if the audit should run at a different cadence.\n\n### Customization\n\nAdjust the exclusion lists to ignore known-safe workflows or tags, and edit the Slack message formatting code if you want a different digest layout or severity wording.",
+        "height": 784,
+        "width": 480
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -848,
+        1040
+      ],
+      "id": "aae561fe-4931-4951-9c1b-89e61d91d330",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "## Start and configure\n\nManual and scheduled triggers feed into a shared configuration node that defines the n8n instance, exclusions, and listing limits for the audit.",
+        "height": 528,
+        "width": 416,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -288,
+        1040
+      ],
+      "id": "f624d3ce-3b62-46ad-a192-ee0a1a2a2d01",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "content": "## Audit published workflows\n\nRetrieves published workflows from n8n, identifies workflows without an error workflow configured, and formats the findings into Slack-ready markdown.",
+        "height": 320,
+        "width": 640,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        160,
+        1152
+      ],
+      "id": "f029f493-238d-434a-9ff4-8a681d4dcf1c",
+      "name": "Sticky Note2"
+    },
+    {
+      "parameters": {
+        "content": "## Report audit result\n\nChecks whether the audit found unprotected workflows, sends a Slack digest when needed, or ends cleanly when all workflows are protected.",
+        "height": 544,
+        "width": 448,
+        "color": 7
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        832,
+        1056
+      ],
+      "id": "29d08699-b12b-4845-877c-d80d8d6329ba",
+      "name": "Sticky Note3"
+    },
+    {
+      "parameters": {},
+      "id": "0a8a622b-182d-43e2-a811-27150a632296",
+      "name": "Manual Execution Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        -240,
+        1216
+      ],
+      "typeVersion": 1
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "id": "fabc8750-b30f-4b0a-a805-d32bdf7168d2",
+      "name": "When Monday at 8am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "position": [
+        -240,
+        1408
+      ],
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e819f0ef-06fc-43f4-bbdb-249f3a53a608",
+              "name": "n8nBaseUrl",
+              "type": "string",
+              "value": "https://n8n.example.com"
+            },
+            {
+              "id": "5c222823-deb0-4d87-acb2-f43f5e527f2b",
+              "name": "excludedTags",
+              "type": "string",
+              "value": "no-error-handler"
+            },
+            {
+              "id": "ea0ee1f9-6519-41a7-8bba-006896a701e6",
+              "name": "excludedWorkflowIds",
+              "type": "string",
+              "value": ""
+            },
+            {
+              "id": "bf8bbcc7-512a-4e60-9800-2fec83671cec",
+              "name": "maxWorkflowsListed",
+              "type": "number",
+              "value": 25
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "db5ca2af-8f1a-4f83-9792-77b73a7baeb6",
+      "name": "Set Workflow Parameters",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        -16,
+        1312
+      ],
+      "notesInFlow": true,
+      "typeVersion": 3.4,
+      "notes": "Edit this node only"
+    },
+    {
+      "parameters": {
+        "filters": {
+          "activeWorkflows": true
+        },
+        "requestOptions": {}
+      },
+      "id": "70af1e3c-7053-4fa2-a12d-471411c3fb1c",
+      "name": "Fetch All Published Workflows",
+      "type": "n8n-nodes-base.n8n",
+      "position": [
+        208,
+        1312
+      ],
+      "notesInFlow": true,
+      "typeVersion": 1,
+      "credentials": {
+        "n8nApi": {
+          "id": "ciSQOiKSg5yW3ch1",
+          "name": "n8n account"
+        }
+      },
+      "notes": "Read-only call"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Flags every published workflow that has no error workflow configured.\n// Read-only: this workflow never writes back to the n8n API.\n// Mode: Run Once for All Items\n\nconst config = $('Set Workflow Parameters').first().json;\n\nconst excludedTags = String(config.excludedTags || '')\n  .split(',')\n  .map((tag) => tag.trim().toLowerCase())\n  .filter(Boolean);\n\nconst excludedIds = String(config.excludedWorkflowIds || '')\n  .split(',')\n  .map((id) => id.trim())\n  .filter(Boolean);\n\nconst results = [];\n\nfor (const item of $input.all()) {\n  const workflow = item.json;\n\n  // Safety net: the API filter should already exclude drafts, but the\n  // parameter name has changed across n8n versions, so re-check here.\n  if (workflow.active !== true) continue;\n  if (workflow.isArchived === true) continue;\n\n  const tags = (workflow.tags || []).map((tag) =>\n    (typeof tag === 'string' ? tag : tag.name || '').toLowerCase(),\n  );\n\n  // A workflow containing an Error Trigger is itself an error handler.\n  const isErrorHandler = (workflow.nodes || []).some(\n    (node) => node.type === 'n8n-nodes-base.errorTrigger',\n  );\n  if (isErrorHandler) continue;\n\n  if (tags.some((tag) => excludedTags.includes(tag))) continue;\n  if (excludedIds.includes(String(workflow.id))) continue;\n\n  const errorWorkflow = (workflow.settings || {}).errorWorkflow || null;\n  if (errorWorkflow) continue;\n\n  results.push({\n    json: {\n      id: workflow.id,\n      name: workflow.name,\n      tags,\n      updatedAt: workflow.updatedAt || null,\n    },\n  });\n}\n\n// Most recently updated first: those are the ones worth fixing now.\nresults.sort((a, b) =>\n  String(b.json.updatedAt || '').localeCompare(String(a.json.updatedAt || '')),\n);\n\nreturn results;"
+      },
+      "id": "345881c0-1dd8-4c47-ad05-2853c4286666",
+      "name": "Identify Missing Error Workflows",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        432,
+        1312
+      ],
+      "typeVersion": 2,
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Formats the audit result as Slack mrkdwn.\n// Mode: Run Once for All Items\n\nconst config = $('Set Workflow Parameters').first().json;\nconst baseUrl = String(config.n8nBaseUrl || '').replace(/\\/+$/, '');\nconst maxListed = Number(config.maxWorkflowsListed) || 25;\n\nconst scanned = $('Fetch All Published Workflows').all().length;\nconst unprotected = $input.all().map((item) => item.json);\n\n// The IF node downstream reads this count.\nif (unprotected.length === 0) {\n  return [{ json: { unprotectedCount: 0, scannedCount: scanned, message: '' } }];\n}\n\nconst link = (workflow) =>\n  baseUrl\n    ? `<${baseUrl}/workflow/${workflow.id}|${workflow.name}>`\n    : `${workflow.name} (${workflow.id})`;\n\nconst lines = [\n  `:shield: *Error workflow audit* — ${unprotected.length} of ${scanned} published workflows have no error workflow configured.`,\n  '',\n];\n\nfor (const workflow of unprotected.slice(0, maxListed)) {\n  lines.push(`• ${link(workflow)}`);\n}\n\nif (unprotected.length > maxListed) {\n  lines.push(`• _…and ${unprotected.length - maxListed} more_`);\n}\n\nlines.push('');\nlines.push('_Fix: open the workflow → Options → Settings → Error workflow._');\n\nlet message = lines.join('\\n');\nif (message.length > 2900) {\n  message = `${message.slice(0, 2850)}\\n_…truncated_`;\n}\n\nreturn [\n  {\n    json: {\n      message,\n      unprotectedCount: unprotected.length,\n      scannedCount: scanned,\n      workflows: unprotected,\n    },\n  },\n];"
+      },
+      "id": "b8ed6044-0e02-4a1c-b582-c1c5ba6c3447",
+      "name": "Format Results for Slack",
+      "type": "n8n-nodes-base.code",
+      "position": [
+        656,
+        1312
+      ],
+      "typeVersion": 2
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "ca6107cb-ff96-4292-a154-ac2965036500",
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              },
+              "leftValue": "={{ $json.unprotectedCount }}",
+              "rightValue": 0
+            }
+          ]
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "275f2e31-00ea-426a-b62d-2722fdcddb7f",
+      "name": "Check for Unprotected Workflows",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        880,
+        1312
+      ],
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "channel-id",
+          "mode": "name"
+        },
+        "text": "={{ $json.message }}",
+        "otherOptions": {
+          "mrkdwn": true
+        }
+      },
+      "id": "bf14735b-34a1-493b-a536-a41128e03ac6",
+      "name": "Post Audit Results to Slack",
+      "type": "n8n-nodes-base.slack",
+      "position": [
+        1136,
+        1216
+      ],
+      "webhookId": "ae7e5e53-dbf4-45da-90a9-59e667105964",
+      "typeVersion": 2.3,
+      "credentials": {
+        "slackApi": {
+          "id": "uV2eVY7SRbINpTyn",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "abe45ee1-8d43-4dfb-9aee-61e998bd637b",
+      "name": "No Actions Required",
+      "type": "n8n-nodes-base.noOp",
+      "position": [
+        1136,
+        1440
+      ],
+      "typeVersion": 1
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Manual Execution Trigger": {
+      "main": [
+        [
+          {
+            "node": "Set Workflow Parameters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Workflow Parameters": {
+      "main": [
+        [
+          {
+            "node": "Fetch All Published Workflows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check for Unprotected Workflows": {
+      "main": [
+        [
+          {
+            "node": "Post Audit Results to Slack",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Actions Required",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Results for Slack": {
+      "main": [
+        [
+          {
+            "node": "Check for Unprotected Workflows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When Monday at 8am": {
+      "main": [
+        [
+          {
+            "node": "Set Workflow Parameters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch All Published Workflows": {
+      "main": [
+        [
+          {
+            "node": "Identify Missing Error Workflows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Identify Missing Error Workflows": {
+      "main": [
+        [
+          {
+            "node": "Format Results for Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "72e082c2-323d-4a5c-9b21-13b60181e0f5",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "b0bd83bbcf974c41d296ec417bc83981f52e9b01b85daa894438f303ad70cd2f"
+  },
+  "nodeGroups": [],
+  "id": "uFnjGkj8yCjiqX7b",
+  "tags": []
+}
